@@ -1,0 +1,8 @@
+{
+  "name": "webrtc-chatting-app-server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/legenlee/webrtc-chatting-app.git",
+  "author": "LegenLee",
+  "license": "MIT"
+}
