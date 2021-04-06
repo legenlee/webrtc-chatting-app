@@ -4,5 +4,15 @@
   "main": "index.js",
   "repository": "https://github.com/legenlee/webrtc-chatting-app.git",
   "author": "LegenLee",
-  "license": "MIT"
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "socket.io": "^4.0.1"
+  },
+  "devDependencies": {
+    "typescript": "^4.2.3"
+  }
 }
