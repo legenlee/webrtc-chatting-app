@@ -1,11 +1,6 @@
 <template>
   <div class="chat-form chat-page__chat-form">
-    <textarea
-      class="chat-form__textarea"
-      v-model="text"
-      type="text"
-      @keydown.enter="test"
-    />
+    <textarea class="chat-form__textarea" v-model="text" type="text" />
     <button class="chat-form__button" type="button">전송</button>
   </div>
 </template>
@@ -16,13 +11,6 @@ import { Component, Vue } from "vue-property-decorator";
 @Component
 export default class ChatForm extends Vue {
   private text = "";
-
-  public test(event: KeyboardEvent) {
-    if (!event.shiftKey) {
-      event.preventDefault();
-      this.$emit("submit", this.text);
-    }
-  }
 }
 </script>
 
