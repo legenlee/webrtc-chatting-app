@@ -1,10 +1,8 @@
 <template>
   <div class="chat-page">
-    <chat-list />
-    <chat-form />
-
-    <div v-for="(text, index) in chatTextList" :key="index">{{ text }}</div>
-    <button @click="sendChat">asd</button>
+    <header class="chat-page__header">WebRTC 채팅 앱</header>
+    <chat-list ref="chat-list" :list="chatModelList" />
+    <chat-form v-model="chatInput" @send="sendChat" />
   </div>
 </template>
 
@@ -13,10 +11,9 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 import { io } from "socket.io-client";
 import ChatList from "@/components/ChatList.vue";
 import ChatForm from "@/components/ChatForm.vue";
-import { Message, RTCIceCandidateEvent } from "@/types";
+import { ChatModel, Message, RTCIceCandidateEvent } from "@/types";
 
 const socket = io("ws://192.168.1.3:3000");
-// const socket = io();
 
 /*global RTCConfiguration */
 const configuration: RTCConfiguration = {
@@ -42,8 +39,10 @@ export default class ChatPage extends Vue {
   private peerConnection: RTCPeerConnection | null = null;
   private dataChannel: RTCDataChannel | null = null;
 
-  public chatInput = "asdf";
-  public chatTextList: string[] = [];
+  private chatRoomId = "";
+  private chatUserId = "";
+  private chatInput = "";
+  private chatModelList: ChatModel[] = [];
 
   public created() {
     socket.on("room-created", this.onRoomCreated);
@@ -51,14 +50,18 @@ export default class ChatPage extends Vue {
     socket.on("room-full", this.onRoomFull);
     socket.on("message", this.receiveSignaling);
 
-    socket.emit("create-or-join", prompt("방 이름"));
+    socket.emit("create-or-join", prompt("Enter a Room Id"));
   }
 
-  private onRoomCreated() {
+  private onRoomCreated(chatUserId: string, chatRoomId: string) {
+    this.chatUserId = chatUserId;
+    this.chatRoomId = chatRoomId;
     this.initiator = true;
   }
 
-  private onRoomJoined() {
+  private onRoomJoined(chatUserId: string, chatRoomId: string) {
+    this.chatUserId = chatUserId;
+    this.chatRoomId = chatRoomId;
     this.initiator = false;
   }
 
@@ -75,8 +78,9 @@ export default class ChatPage extends Vue {
       case "offer": {
         this.peerConnection?.setRemoteDescription(message.sessionDescription);
 
-        const description = (await this.peerConnection?.createAnswer()) as RTCSessionDescription;
-        this.sendSignaling(description);
+        this.sendSignaling(
+          (await this.peerConnection?.createAnswer()) as RTCSessionDescription
+        );
         break;
       }
 
@@ -111,8 +115,6 @@ export default class ChatPage extends Vue {
   }
 
   private async createPeerConnection() {
-    console.log(this.initiator);
-
     try {
       this.peerConnection = new RTCPeerConnection(configuration);
       this.peerConnection.addEventListener(
@@ -124,8 +126,9 @@ export default class ChatPage extends Vue {
         this.dataChannel = this.peerConnection.createDataChannel("chat");
         this.dataChannel?.addEventListener("message", this.receiveChat);
 
-        const description = (await this.peerConnection.createOffer()) as RTCSessionDescription;
-        this.sendSignaling(description);
+        this.sendSignaling(
+          (await this.peerConnection.createOffer()) as RTCSessionDescription
+        );
       } else {
         this.peerConnection.addEventListener("datachannel", (event) => {
           this.dataChannel = event.channel;
@@ -146,11 +149,31 @@ export default class ChatPage extends Vue {
       return;
     }
 
-    this.dataChannel?.send("asdf");
+    const chatModel: ChatModel = {
+      id: this.chatUserId,
+      text: this.chatInput,
+      date: window.performance.now(),
+    };
+
+    this.dataChannel?.send(JSON.stringify({ ...chatModel, isMine: false }));
+    this.insertChatModel({ ...chatModel, isMine: true });
+    this.scrollDown();
   }
 
   private receiveChat(event: MessageEvent) {
-    this.chatTextList = [...this.chatTextList, event.data];
+    this.insertChatModel(JSON.parse(event.data));
+    this.scrollDown();
+  }
+
+  private scrollDown() {
+    this.$nextTick(() => {
+      const { $el: chatItemContainer } = this.$refs["chat-list"] as Vue;
+      chatItemContainer.scrollTop = chatItemContainer.scrollHeight;
+    });
+  }
+
+  private insertChatModel(chatModel: ChatModel) {
+    this.chatModelList = [...this.chatModelList, chatModel];
   }
 
   private sendSignaling(sessionDescription: RTCSessionDescription) {
@@ -164,4 +187,34 @@ export default class ChatPage extends Vue {
 }
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+@import "@/styles/variables.scss";
+
+.chat-page {
+  margin: 0 auto;
+  max-width: 500px;
+  min-width: 320px;
+  height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+
+  &__header {
+    background-color: $primary;
+    padding: 12px 16px;
+
+    color: $white;
+    font-weight: bold;
+  }
+
+  &__chat-list {
+    padding: 8px;
+    flex-grow: 1;
+  }
+
+  &__chat-form {
+    padding: 8px;
+    flex-shrink: 0;
+  }
+}
+</style>

@@ -17,10 +17,21 @@ export default class App extends Vue {}
 </script>
 
 <style lang="scss">
+@import "@/styles/variables.scss";
+
 .app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  color: #2c3e50;
+
+  height: 100vh;
+
+  overflow: hidden;
+  color: $black;
+
+  &--dark {
+    background-color: $gray;
+    color: $white;
+  }
 }
 </style>

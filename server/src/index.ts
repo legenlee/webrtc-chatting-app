@@ -16,7 +16,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("create-or-join", (roomId: string) => {
-    console.log("Someone discovering existence.");
+    console.log(`${socket.id} discovering existence.`);
 
     const clientsInRoom = io.sockets.adapter.rooms.get(roomId);
 
@@ -24,14 +24,14 @@ io.on("connection", (socket) => {
       default:
       case 0: {
         socket.join(roomId);
-        socket.emit("room-created");
+        socket.emit("room-created", socket.id, roomId);
         console.log(`${socket.id} created existence and named to ${roomId}.`);
         break;
       }
       case 1: {
         socket.join(roomId);
         io.sockets.in(roomId).emit("room-join");
-        socket.emit("room-joined");
+        socket.emit("room-joined", socket.id, roomId);
         io.sockets.in(roomId).emit("room-ready");
         console.log(`${socket.id} discovered existence known as ${roomId}.`);
         break;

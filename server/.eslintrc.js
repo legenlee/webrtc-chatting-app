@@ -10,15 +10,15 @@ module.exports = {
     "plugin:prettier/recommended",
   ],
   parserOptions: {
-    project: "./tsconfig.json"
+    project: "./tsconfig.json",
   },
   ignorePatterns: ["dist/", "node_modules/"],
   rules: {
-    "prettier/prettier": [ 
+    "prettier/prettier": [
       "error",
       {
-        "endOfLine": "auto"
-      }
-    ]
-  }
-}
+        endOfLine: "auto",
+      },
+    ],
+  },
+};

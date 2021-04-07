@@ -8,8 +8,9 @@ export type Message = {
   sessionDescription: RTCSessionDescription;
 };
 
-export type Chat = {
+export type ChatModel = {
   id: string;
   text: string;
-  date: Date;
+  date: number;
+  isMine?: boolean;
 };
