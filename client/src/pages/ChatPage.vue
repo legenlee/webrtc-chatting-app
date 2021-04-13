@@ -1,16 +1,21 @@
 <template>
   <div class="chat-page">
-    <header class="chat-page__header">WebRTC 채팅 앱</header>
+    <header class="header chat-page__header">
+      <span class="header__inner-text">WebRTC 채팅 앱</span>
+      <span class="waiting header__inner-text" v-if="disabled">
+        Waiting for connection...
+      </span>
+    </header>
     <chat-list ref="chat-list" :list="chatModelList" />
-    <chat-form v-model="chatInput" @send="sendChat" />
+    <chat-form v-model="chatInput" @send="sendChat" :disabled="disabled" />
   </div>
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
+import { Component, Vue } from "vue-property-decorator";
 import { io } from "socket.io-client";
-import ChatList from "@/components/ChatList.vue";
-import ChatForm from "@/components/ChatForm.vue";
+import ChatList from "@/components/Chat/ChatList.vue";
+import ChatForm from "@/components/Chat/ChatForm.vue";
 import { ChatModel, Message, RTCIceCandidateEvent } from "@/types";
 
 const socket = io("ws://192.168.1.3:3000");
@@ -31,9 +36,7 @@ const configuration: RTCConfiguration = {
   },
 })
 export default class ChatPage extends Vue {
-  @Prop({ type: Boolean, default: false })
-  private loading!: boolean;
-
+  private disabled = false;
   private initiator = false;
 
   private peerConnection: RTCPeerConnection | null = null;
@@ -45,6 +48,8 @@ export default class ChatPage extends Vue {
   private chatModelList: ChatModel[] = [];
 
   public created() {
+    this.disabled = true;
+
     socket.on("room-created", this.onRoomCreated);
     socket.on("room-ready", this.createPeerConnection);
     socket.on("room-full", this.onRoomFull);
@@ -70,7 +75,7 @@ export default class ChatPage extends Vue {
   }
 
   private onRoomFull() {
-    //
+    socket.emit("create-or-join", prompt("Room is full, Re-enter a Room id."));
   }
 
   private async receiveSignaling(message: Message) {
@@ -93,6 +98,8 @@ export default class ChatPage extends Vue {
         this.peerConnection?.addIceCandidate(
           new RTCIceCandidate(message.candidate)
         );
+
+        this.disabled = false;
         break;
       }
 
@@ -205,6 +212,10 @@ export default class ChatPage extends Vue {
 
     color: $white;
     font-weight: bold;
+
+    .header__inner-text:not(:last-child) {
+      margin-right: 0.3em;
+    }
   }
 
   &__chat-list {

@@ -2,22 +2,40 @@
   <div class="chat-form chat-page__chat-form">
     <textarea
       class="chat-form__textarea"
+      :class="{
+        'chat-form__textarea--disabled': disabled,
+      }"
       v-model="chatInput"
       type="text"
       rows="3"
+      :disabled="disabled"
       @keydown.enter="beforeSend"
     />
-    <button class="chat-form__button" type="button" @click="send">전송</button>
+
+    <button
+      class="chat-form__button"
+      :class="{
+        'chat-form__button--disabled': disabled,
+      }"
+      type="button"
+      :disabled="disabled"
+      @click="send"
+    >
+      전송
+    </button>
   </div>
 </template>
 
 <script lang="ts">
-import { Component, Emit, VModel, Vue } from "vue-property-decorator";
+import { Component, Prop, VModel, Vue } from "vue-property-decorator";
 
 @Component
 export default class ChatForm extends Vue {
   @VModel({ type: String, default: "" })
   private chatInput!: string;
+
+  @Prop({ type: Boolean, default: false })
+  private disabled!: boolean;
 
   public send() {
     if (this.chatInput) {
@@ -50,6 +68,10 @@ export default class ChatForm extends Vue {
     resize: none;
     font-family: inherit;
     overflow: hidden;
+
+    &--disabled {
+      cursor: not-allowed;
+    }
   }
 
   &__button {
@@ -62,10 +84,12 @@ export default class ChatForm extends Vue {
 
     background-color: $primary;
     color: $white;
+    cursor: pointer;
 
     &--disabled {
       background-color: $light-gray;
-      color: $gray;
+      color: $white;
+      cursor: not-allowed;
     }
   }
 }

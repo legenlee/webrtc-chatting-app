@@ -1,7 +1,6 @@
 <template>
   <li class="chat-item-wrapper">
     <div class="chat-item chat-list__item" :class="chatItemClass">
-      <div class="chat-item__writer">{{ item.id }}</div>
       <div class="chat-item__text">{{ item.text }}</div>
     </div>
   </li>
