@@ -29,7 +29,7 @@ export default class App extends Vue {}
   overflow: hidden;
   color: $black;
 
-  &--dark {
+  &--theme-dark {
     background-color: $gray;
     color: $white;
   }
